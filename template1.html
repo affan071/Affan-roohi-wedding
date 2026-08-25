@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>KR Mohammed Affan & P Afreen Roohi | Wedding Invitation</title>
+  
+  <meta property="og:title" content="KR Mohammed Affan & P Afreen Roohi | Wedding Invitation">
+  <meta property="og:description" content="We request the honor of your presence to celebrate the Nikah & Walima of Affan & Roohi on November 15, 2026.">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#F8F5F0">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cinzel:wght@400;500;600;700&family=Great+Vibes&family=Montserrat:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cream: '#FDFBF7',
+            alabaster: '#F8F5F0',
+            champagne: '#EADBC8',
+            rosewood: '#6B333B',
+            sage: '#4A5B4E',
+            gold: { light: '#F4E3B5', DEFAULT: '#C5A059', dark: '#936F28' },
+            charcoal: '#2D2D2D',
+          },
+          fontFamily: {
+            arabic: ['"Amiri"', 'serif'],
+            serif: ['"Playfair Display"', 'serif'],
+            cinzel: ['"Cinzel"', 'serif'],
+            cursive: ['"Great Vibes"', 'cursive'],
+            sans: ['"Montserrat"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { 
+      background-color: #F8F5F0; 
+      overflow-x: hidden; 
+      scroll-behavior: smooth; 
+      color: #2D2D2D; 
+      background-image: radial-gradient(#C5A059 0.75px, transparent 0.75px), radial-gradient(#4A5B4E 0.5px, #F8F5F0 0.5px);
+      background-size: 30px 30px;
+    }
+    .luxury-card {
+      background: #FFFFFF;
+      border: 1px solid rgba(197, 160, 89, 0.3);
+      box-shadow: 0 15px 40px -10px rgba(107, 51, 59, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+    }
+    .stationery-border { position: relative; }
+    .stationery-border::before {
+      content: ''; position: absolute; inset: 8px;
+      border: 1px solid rgba(197, 160, 89, 0.25);
+      pointer-events: none; border-radius: inherit;
+    }
+    .envelope-wrapper { perspective: 1000px; }
+    .flap {
+      transform-origin: top; transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+      clip-path: polygon(0 0, 50% 50%, 100% 0); z-index: 10;
+    }
+    .flap.open { transform: rotateX(180deg); }
+    .wax-seal { transition: all 0.6s ease; }
+    .wax-seal.break { 
+      opacity: 0; transform: scale(2) translate(-25%, -25%);
+      box-shadow: 0 0 70px 35px rgba(197, 160, 89, 0.8);
+    }
+    .magic-particle {
+      position: fixed; top: 50%; left: 50%; pointer-events: none; z-index: 1000;
+      animation: float-particle var(--duration) cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }
+    .shape-petal { border-radius: 60% 0 60% 60%; }
+    .shape-sparkle { border-radius: 50%; box-shadow: 0 0 10px #C5A059, 0 0 15px #FFF; }
+    @keyframes float-particle {
+      0% { transform: translate(-50%, -50%) scale(0) rotate(0deg); opacity: 0; }
+      15% { transform: translate(var(--boom-x), var(--boom-y)) scale(var(--scale)) rotate(var(--rot1)); opacity: 1; }
+      100% { transform: translate(var(--end-x), 120vh) scale(var(--scale)) rotate(var(--rot2)); opacity: 0; }
+    }
+    .scroll-reveal { opacity: 0; transform: translateY(45px); transition: all 1.1s cubic-bezier(0.16, 1, 0.3, 1); }
+    .scroll-reveal.scroll-active { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body class="font-sans antialiased">
+
+  <!-- Direct Root Audio -->
+  <audio id="wedding-music" loop preload="auto">
+    <source id="audio-source" src="affanroohi.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- Floating Audio Toggle -->
+  <div id="floating-controls" class="fixed top-5 right-5 z-50 hidden">
+    <button onclick="toggleMusic()" class="w-11 h-11 bg-white/90 backdrop-blur-md rounded-full shadow-lg flex items-center justify-center text-rosewood border border-gold/30 hover:scale-110 transition-transform">
+      <svg id="music-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+    </button>
+  </div>
+
+  <!-- 1. Envelope Opening Screen -->
+  <div id="envelope-screen" class="fixed inset-0 z-40 bg-[#F4EFE6] flex flex-col items-center justify-center transition-all duration-1000">
+    <div class="text-center mb-8">
+      <p class="font-arabic text-2xl text-gold-dark mb-1">بِسْمِ ٱللَّٰهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</p>
+      <p class="font-cinzel text-xs tracking-[0.35em] text-sage uppercase mb-1">Wedding Invitation</p>
+      <h3 id="dyn-envelope_names" class="font-cursive text-4xl text-rosewood drop-shadow-sm">Affan & Roohi</h3>
+    </div>
+    
+    <div class="envelope-wrapper relative w-[90%] max-w-sm h-64 cursor-pointer shadow-2xl transition-transform hover:scale-[1.02] duration-300" onclick="openInvitation()">
+      <div class="absolute inset-0 bg-[#E8DEC8] rounded-sm border border-gold/40"></div>
+      <div id="envelope-flap" class="flap absolute inset-0 bg-[#F2E8D5] shadow-md flex justify-center border-b border-gold/40"></div>
+      
+      <div id="wax-seal" class="wax-seal absolute top-[40%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-18 h-18 bg-gradient-to-br from-[#7A3640] via-[#5C232B] to-[#45141B] rounded-full flex items-center justify-center shadow-2xl border-2 border-gold z-20">
+        <div class="w-14 h-14 rounded-full border border-gold/40 flex items-center justify-center">
+          <span id="dyn-seal_monogram" class="font-cinzel font-semibold text-xl text-gold-light tracking-widest drop-shadow">A&A</span>
+        </div>
+      </div>
+      <div class="absolute inset-0 bg-transparent pointer-events-none" style="background: linear-gradient(135deg, transparent 49%, #E4D8BF 50%), linear-gradient(-135deg, transparent 49%, #E4D8BF 50%); background-size: 50% 100%; background-repeat: no-repeat; background-position: left, right; z-index: 15;"></div>
+    </div>
+    <p class="text-center mt-10 font-cinzel text-xs tracking-[0.3em] text-rosewood/70 uppercase animate-pulse">Tap the wax seal to open</p>
+  </div>
+
+  <!-- Main Invitation Page -->
+  <div id="main-content" class="hidden opacity-0 transition-opacity duration-[1500ms] ease-in-out relative z-10">
+    
+    <!-- Hero Section with Single-Line Names -->
+    <section class="relative min-h-[92vh] w-full flex items-center justify-center py-20 overflow-hidden">
+      <div class="relative z-10 text-center px-4 max-w-4xl mx-auto w-full">
+        <div class="mb-8 inline-block scroll-reveal">
+          <h2 class="font-arabic text-3xl md:text-5xl text-rosewood font-normal tracking-wide leading-relaxed drop-shadow-sm py-1">بِسْمِ ٱللَّٰهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</h2>
+          <p class="font-serif italic text-sage text-xs md:text-sm tracking-wide mt-1">In the Name of Allah, the Most Gracious, the Most Merciful</p>
+        </div>
+
+        <p class="font-cinzel text-xs md:text-sm tracking-[0.28em] text-rosewood uppercase mb-5 font-semibold scroll-reveal">We Request The Honor Of Your Presence At The Wedding Of</p>
+        
+        <div class="w-full overflow-hidden py-2 scroll-reveal">
+          <h1 id="dyn-groom_name" class="font-cursive text-[2.5rem] sm:text-6xl md:text-7xl lg:text-8xl text-rosewood drop-shadow-sm mb-1 whitespace-nowrap">KR Mohammed Affan</h1>
+          <p class="font-serif text-2xl sm:text-3xl md:text-4xl text-gold italic my-1">&</p>
+          <h1 id="dyn-bride_name" class="font-cursive text-[2.5rem] sm:text-6xl md:text-7xl lg:text-8xl text-rosewood drop-shadow-sm mb-6 whitespace-nowrap">P Afreen Roohi</h1>
+        </div>
+        
+        <div class="flex items-center justify-center gap-4 mt-6 scroll-reveal">
+          <div class="h-[1px] w-12 bg-gold/60"></div>
+          <p id="dyn-together_text" class="font-cinzel text-xs tracking-widest text-charcoal/80 font-medium">Together with their families</p>
+          <div class="h-[1px] w-12 bg-gold/60"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Date & Countdown -->
+    <section class="py-16 px-6 max-w-4xl mx-auto text-center">
+      <div class="luxury-card stationery-border rounded-3xl p-8 md:p-14 max-w-xl mx-auto relative scroll-reveal">
+        <p class="font-cinzel text-xs tracking-[0.3em] text-sage uppercase mb-2 font-semibold">Save The Date</p>
+        <h2 id="dyn-display_date" class="font-serif text-3xl md:text-4xl text-rosewood mb-2">NOVEMBER 15, 2026</h2>
+        <p id="dyn-display_day" class="font-cinzel text-sm text-gold-dark tracking-widest font-semibold">Sunday</p>
+        
+        <div class="w-16 h-[1px] bg-gold/50 mx-auto my-7"></div>
+
+        <h4 class="font-cinzel text-xs tracking-widest text-charcoal/60 uppercase mb-5">Counting Down To Forever</h4>
+        <div id="countdown" class="grid grid-cols-4 gap-2 md:gap-4 font-serif">
+          <div class="bg-alabaster p-3 rounded-xl border border-gold/20"><span id="days" class="text-3xl md:text-4xl text-rosewood font-light block">00</span><span class="font-sans text-[9px] text-charcoal/60 uppercase tracking-widest">Days</span></div>
+          <div class="bg-alabaster p-3 rounded-xl border border-gold/20"><span id="hours" class="text-3xl md:text-4xl text-rosewood font-light block">00</span><span class="font-sans text-[9px] text-charcoal/60 uppercase tracking-widest">Hours</span></div>
+          <div class="bg-alabaster p-3 rounded-xl border border-gold/20"><span id="minutes" class="text-3xl md:text-4xl text-rosewood font-light block">00</span><span class="font-sans text-[9px] text-charcoal/60 uppercase tracking-widest">Mins</span></div>
+          <div class="bg-alabaster p-3 rounded-xl border border-gold/20"><span id="seconds" class="text-3xl md:text-4xl text-rosewood font-light block">00</span><span class="font-sans text-[9px] text-charcoal/60 uppercase tracking-widest">Secs</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Program Timeline -->
+    <section class="py-16 px-4 max-w-3xl mx-auto">
+      <div class="text-center mb-12 scroll-reveal">
+        <p class="font-cinzel text-xs tracking-[0.3em] text-sage uppercase mb-2 font-semibold">Celebration Schedule</p>
+        <h2 class="font-cursive text-5xl md:text-6xl text-rosewood mb-3">Program Timeline</h2>
+        <div class="w-20 h-[1px] bg-gold/50 mx-auto"></div>
+      </div>
+
+      <div class="space-y-6">
+        <div class="luxury-card p-6 md:p-8 rounded-2xl relative overflow-hidden group hover:border-gold transition-colors duration-300 scroll-reveal">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <span id="dyn-event1_tag" class="text-[10px] font-cinzel tracking-widest text-sage uppercase bg-sage/10 px-3 py-1 rounded-full font-semibold mb-2 inline-block">Solemnization</span>
+              <h3 id="dyn-event1_title" class="font-serif text-2xl text-charcoal">The Nikah Ceremony</h3>
+              <p id="dyn-event1_time" class="font-sans text-sm text-rosewood mt-1 font-medium">Sunday, Nov 15, 2026 • 11:00 AM</p>
+            </div>
+            <span class="font-serif italic text-gold-dark text-sm bg-alabaster px-4 py-1.5 rounded-full border border-gold/20">Insha'Allah</span>
+          </div>
+        </div>
+
+        <div class="luxury-card p-6 md:p-8 rounded-2xl relative overflow-hidden group hover:border-gold transition-colors duration-300 scroll-reveal">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <span id="dyn-event2_tag" class="text-[10px] font-cinzel tracking-widest text-gold-dark uppercase bg-gold/15 px-3 py-1 rounded-full font-semibold mb-2 inline-block">Wedding Feast</span>
+              <h3 id="dyn-event2_title" class="font-serif text-2xl text-charcoal">Celebratory Lunch</h3>
+              <p id="dyn-event2_time" class="font-sans text-sm text-rosewood mt-1 font-medium">Following the Nikah • 1:00 PM onwards</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="luxury-card p-6 md:p-8 rounded-2xl relative overflow-hidden group hover:border-gold transition-colors duration-300 scroll-reveal">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <span id="dyn-event3_tag" class="text-[10px] font-cinzel tracking-widest text-rosewood uppercase bg-rosewood/10 px-3 py-1 rounded-full font-semibold mb-2 inline-block">Reception</span>
+              <h3 id="dyn-event3_title" class="font-serif text-2xl text-charcoal">The Walima Reception</h3>
+              <p id="dyn-event3_time" class="font-sans text-sm text-rosewood mt-1 font-medium">Sunday, Nov 15, 2026 • 7:30 PM</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Venue -->
+    <section class="py-16 px-6 max-w-4xl mx-auto text-center">
+      <div class="luxury-card stationery-border p-8 md:p-14 rounded-3xl max-w-xl mx-auto relative scroll-reveal">
+        <div class="w-12 h-12 rounded-full bg-alabaster border border-gold/30 flex items-center justify-center mx-auto mb-5 text-rosewood shadow-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+        </div>
+        <p class="font-cinzel text-xs tracking-widest text-sage uppercase mb-2 font-semibold">The Venue</p>
+        <h3 id="dyn-venue_name" class="font-serif text-2xl md:text-3xl text-charcoal mb-3">Grand Palace Banquet Hall</h3>
+        <p id="dyn-venue_address" class="font-sans text-sm text-charcoal/70 max-w-md mx-auto mb-7 leading-relaxed">
+          123 Luxury Grand Banquet Avenue, Royal Palace Road, City Name, State - 560001
+        </p>
+        <a id="dyn-venue_map_url" href="https://maps.google.com" target="_blank" class="inline-flex items-center gap-3 px-8 py-3.5 bg-rosewood text-white font-cinzel text-xs tracking-widest rounded-full shadow-md hover:bg-[#52252B] transition-all">
+          <span>VIEW ON GOOGLE MAPS</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
+        </a>
+      </div>
+    </section>
+
+    <!-- RSVP -->
+    <section class="py-20 px-6 max-w-xl mx-auto">
+      <div class="text-center mb-8 scroll-reveal">
+        <p class="font-cinzel text-xs tracking-widest text-sage uppercase mb-2 font-semibold">Kindly Respond</p>
+        <h2 class="font-cursive text-5xl text-rosewood mb-2">Will You Join Us?</h2>
+        <p class="font-serif italic text-charcoal/70 text-sm">Please grace us with your RSVP</p>
+      </div>
+
+      <form id="rsvp-form" onsubmit="submitRSVP(event)" class="luxury-card p-8 md:p-10 rounded-3xl space-y-6 scroll-reveal">
+        <div>
+          <label class="block font-cinzel text-[11px] uppercase tracking-wider text-sage font-semibold mb-1">Your Name</label>
+          <input type="text" id="guestName" required placeholder="Full Name" class="w-full bg-transparent border-b border-charcoal/20 pb-2 text-charcoal font-sans text-sm focus:border-rosewood outline-none">
+        </div>
+
+        <div class="py-2">
+          <label class="block font-cinzel text-[11px] uppercase tracking-wider text-sage font-semibold mb-3">Attendance</label>
+          <div class="flex flex-col sm:flex-row gap-4">
+            <label class="flex items-center gap-2.5 font-sans text-sm text-charcoal/90 cursor-pointer">
+              <input type="radio" name="attendance" value="Joyfully Accept" required class="accent-rosewood w-4 h-4">
+              <span>Joyfully Accept</span>
+            </label>
+            <label class="flex items-center gap-2.5 font-sans text-sm text-charcoal/90 cursor-pointer">
+              <input type="radio" name="attendance" value="Regretfully Decline" class="accent-rosewood w-4 h-4">
+              <span>Regretfully Decline</span>
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-cinzel text-[11px] uppercase tracking-wider text-sage font-semibold mb-1">Prayer & Wishes</label>
+          <textarea id="guestMessage" rows="3" placeholder="Leave a prayer or wish for Affan & Roohi..." class="w-full bg-transparent border-b border-charcoal/20 pb-2 text-charcoal font-sans text-sm focus:outline-none focus:border-rosewood resize-none"></textarea>
+        </div>
+
+        <button type="submit" id="submit-btn" class="w-full py-4 bg-rosewood text-white font-cinzel font-semibold text-xs uppercase tracking-[0.2em] rounded-xl shadow-md hover:bg-[#52252B] transition-all">
+          Confirm RSVP
+        </button>
+
+        <div id="rsvp-success" class="hidden text-center py-4 text-rosewood font-serif italic text-lg">
+          JazakAllah Khair ❤️<br><span class="text-sm font-sans text-charcoal/80">We look forward to celebrating with you!</span>
+        </div>
+      </form>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-16 text-center border-t border-gold/20 bg-alabaster/60 scroll-reveal">
+      <div class="max-w-md mx-auto px-6">
+        <p class="font-cinzel text-[10px] uppercase tracking-[0.35em] text-sage mb-2 font-semibold">With the blessings of our families</p>
+        <h3 id="dyn-footer_names" class="font-cursive text-5xl text-rosewood mb-2 whitespace-nowrap">Affan & Roohi</h3>
+        <p class="font-serif italic text-sm text-charcoal/70">Thank you for showering us with your love and prayers.</p>
+        <div class="mt-6 text-gold text-base">❦</div>
+
+        <div class="mt-8 pt-4 border-t border-gold/15 flex justify-center">
+          <a href="admin.html" target="_blank" class="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.25em] text-sage/60 hover:text-rosewood transition-colors font-cinzel font-medium">
+            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            <span>Login to Admin</span>
+          </a>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- JavaScript Engine with 0-Latency Realtime Receivers -->
+  <script>
+    const SUPABASE_URL = "https://nvmlebskojjrgumuvwci.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52bWxlYnNrb2pqcmd1bXV2d2NpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxMjExNzMsImV4cCI6MjEwMjY5NzE3M30.1VfcgQqMM0YnEZZsFFKy3ICvdh6_i-VSZtIfusNMAHM";
+
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let currentCountdownDate = "Nov 15, 2026 11:00:00";
+    const music = document.getElementById('wedding-music');
+    const musicIcon = document.getElementById('music-icon');
+    let isPlaying = false;
+
+    function applyT1Data(data) {
+      if (!data) return;
+      if (data.groom_name) document.getElementById('dyn-groom_name').innerText = data.groom_name;
+      if (data.bride_name) document.getElementById('dyn-bride_name').innerText = data.bride_name;
+      if (data.seal_monogram) document.getElementById('dyn-seal_monogram').innerText = data.seal_monogram;
+      if (data.footer_names) {
+        document.getElementById('dyn-footer_names').innerText = data.footer_names;
+        document.getElementById('dyn-envelope_names').innerText = data.footer_names;
+      }
+      if (data.together_text) document.getElementById('dyn-together_text').innerText = data.together_text;
+      if (data.display_date) document.getElementById('dyn-display_date').innerText = data.display_date;
+      if (data.display_day) document.getElementById('dyn-display_day').innerText = data.display_day;
+
+      if (data.event1_tag) document.getElementById('dyn-event1_tag').innerText = data.event1_tag;
+      if (data.event1_title) document.getElementById('dyn-event1_title').innerText = data.event1_title;
+      if (data.event1_time) document.getElementById('dyn-event1_time').innerText = data.event1_time;
+
+      if (data.event2_tag) document.getElementById('dyn-event2_tag').innerText = data.event2_tag;
+      if (data.event2_title) document.getElementById('dyn-event2_title').innerText = data.event2_title;
+      if (data.event2_time) document.getElementById('dyn-event2_time').innerText = data.event2_time;
+
+      if (data.event3_tag) document.getElementById('dyn-event3_tag').innerText = data.event3_tag;
+      if (data.event3_title) document.getElementById('dyn-event3_title').innerText = data.event3_title;
+      if (data.event3_time) document.getElementById('dyn-event3_time').innerText = data.event3_time;
+
+      if (data.venue_name) document.getElementById('dyn-venue_name').innerText = data.venue_name;
+      if (data.venue_address) document.getElementById('dyn-venue_address').innerText = data.venue_address;
+      if (data.venue_map_url) document.getElementById('dyn-venue_map_url').href = data.venue_map_url;
+
+      if (data.audio_file) {
+        const clean = data.audio_file.trim();
+        const finalSrc = clean.startsWith('http') || clean.startsWith('/') ? clean : clean;
+        const srcEl = document.getElementById('audio-source');
+        if (srcEl && music.src !== finalSrc) {
+          srcEl.src = finalSrc;
+          music.src = finalSrc;
+          music.load();
+        }
+      }
+      if (data.countdown_date) currentCountdownDate = data.countdown_date;
+    }
+
+    // ⚡ 1. 0MS LOCAL BROADCAST CHANNEL (Instant same-browser updates)
+    const localBc = new BroadcastChannel('wedding_live_sync');
+    localBc.onmessage = (event) => {
+      if (event.data && event.data.type === 't1_sync') {
+        console.log('⚡ 0ms Local Sync Applied to T1:', event.data.data);
+        applyT1Data(event.data.data);
+      }
+    };
+
+    // ⚡ 2. SUPABASE WEBSOCKET BROADCAST (<50ms Global Realtime)
+    const liveChannel = db.channel('wedding-live-sync')
+      .on('broadcast', { event: 't1_sync' }, (payload) => {
+        console.log('⚡ High-Speed WebSocket Update Received on T1:', payload);
+        if (payload.payload) applyT1Data(payload.payload);
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 't1_config' }, (payload) => {
+        if (payload.new) applyT1Data(payload.new);
+        else fetchConfig();
+      })
+      .subscribe();
+
+    // 0ms Cache Hydration
+    try {
+      const cached = localStorage.getItem('cached_t1_config');
+      if (cached) applyT1Data(JSON.parse(cached));
+    } catch(e) {}
+
+    // Async Fetch from Supabase
+    async function fetchConfig() {
+      try {
+        const { data } = await db.from('t1_config').select('*').eq('id', 1).single();
+        if (data) {
+          applyT1Data(data);
+          localStorage.setItem('cached_t1_config', JSON.stringify(data));
+        }
+      } catch (e) {}
+    }
+    fetchConfig();
+
+    function playMusic() {
+      if (!music) return;
+      music.volume = 1.0;
+      const playPromise = music.play();
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+          isPlaying = true;
+          updateMusicIcon();
+        }).catch(() => {
+          isPlaying = false;
+          updateMusicIcon();
+        });
+      }
+    }
+
+    function toggleMusic() {
+      if (isPlaying) { 
+        music.pause(); 
+        isPlaying = false; 
+      } else { 
+        music.play().then(() => { isPlaying = true; }).catch(() => {});
+      }
+      updateMusicIcon();
+    }
+
+    function updateMusicIcon() {
+      if (!musicIcon) return;
+      musicIcon.innerHTML = isPlaying 
+        ? `<rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>`
+        : `<path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle>`;
+    }
+
+    function triggerMagicShower() {
+      const container = document.body;
+      const colors = ['#C2828B', '#F7E7CE', '#C5A059', '#7D9683', '#EBD2B4'];
+      const particleCount = 65;
+
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        const isPetal = Math.random() > 0.35;
+        particle.className = `magic-particle ${isPetal ? 'shape-petal' : 'shape-sparkle'}`;
+        const size = isPetal ? (Math.random() * 12 + 10) : (Math.random() * 5 + 3);
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        particle.style.background = color;
+        particle.style.setProperty('--bg-color', color);
+        
+        const angle = Math.random() * Math.PI * 2;
+        const velocity = Math.random() * 180 + 70;
+        const boomX = Math.cos(angle) * velocity;
+        const boomY = Math.sin(angle) * velocity - 60;
+        const endX = boomX + (Math.random() * 250 - 125);
+        const startRot = Math.random() * 360;
+        const endRot = startRot + (Math.random() * 1080 - 540);
+        const duration = Math.random() * 3000 + 3500;
+        
+        particle.style.setProperty('--boom-x', `${boomX}px`);
+        particle.style.setProperty('--boom-y', `${boomY}px`);
+        particle.style.setProperty('--end-x', `${endX}px`);
+        particle.style.setProperty('--rot1', `${startRot}deg`);
+        particle.style.setProperty('--rot2', `${endRot}deg`);
+        particle.style.setProperty('--scale', Math.random() * 0.5 + 0.8);
+        particle.style.setProperty('--duration', `${duration}ms`);
+        
+        container.appendChild(particle);
+        setTimeout(() => particle.remove(), duration);
+      }
+    }
+
+    let envelopeOpened = false;
+    function openInvitation() {
+      if (envelopeOpened) return;
+      envelopeOpened = true;
+
+      playMusic();
+
+      document.getElementById('envelope-flap').classList.add('open');
+      document.getElementById('wax-seal').classList.add('break');
+      
+      setTimeout(triggerMagicShower, 100);
+
+      setTimeout(() => {
+        document.getElementById('envelope-screen').style.opacity = '0';
+        setTimeout(() => {
+          document.getElementById('envelope-screen').style.display = 'none';
+          const mainContent = document.getElementById('main-content');
+          mainContent.classList.remove('hidden');
+          setTimeout(() => mainContent.classList.remove('opacity-0'), 50);
+          document.getElementById('floating-controls').classList.remove('hidden');
+          initScrollObserver();
+        }, 800);
+      }, 1200);
+    }
+
+    setInterval(function() {
+      const targetDate = new Date(currentCountdownDate).getTime();
+      const distance = targetDate - new Date().getTime();
+      if (distance < 0) {
+        document.getElementById("countdown").innerHTML = "<div class='text-2xl text-rosewood font-cursive col-span-4'>Today is the Blessed Day ❤️</div>";
+        return;
+      }
+      document.getElementById("days").innerText = Math.floor(distance / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
+      document.getElementById("hours").innerText = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
+      document.getElementById("minutes").innerText = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
+      document.getElementById("seconds").innerText = Math.floor((distance % (1000 * 60)) / 1000).toString().padStart(2, '0');
+    }, 1000);
+
+    function initScrollObserver() {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) entry.target.classList.add('scroll-active');
+          else entry.target.classList.remove('scroll-active');
+        });
+      }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
+
+      document.querySelectorAll('.scroll-reveal').forEach(el => observer.observe(el));
+    }
+
+    async function submitRSVP(e) {
+      e.preventDefault();
+      const btn = document.getElementById('submit-btn');
+      const form = document.getElementById('rsvp-form');
+      const success = document.getElementById('rsvp-success');
+      const guestName = document.getElementById('guestName').value.trim();
+      const attendance = document.querySelector('input[name="attendance"]:checked').value;
+      const message = document.getElementById('guestMessage').value.trim();
+
+      btn.innerHTML = "Submitting...";
+      btn.disabled = true;
+
+      const { error } = await db.from('rsvp').insert([{
+        template_source: 'Template 1 (Wax Seal)',
+        guest_name: guestName,
+        attendance: attendance,
+        message: message
+      }]);
+
+      btn.innerHTML = "Confirm RSVP";
+      btn.disabled = false;
+
+      if (!error) {
+        btn.style.display = 'none';
+        Array.from(form.elements).forEach(el => { if (el.tagName !== 'BUTTON') el.style.display = 'none'; });
+        if (success) {
+          success.classList.remove('hidden');
+          success.classList.add('block');
+        }
+      } else {
+        alert("Error saving RSVP: " + error.message);
+      }
+    }
+  </script>
+</body>
+</html>

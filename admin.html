@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard </title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- jsPDF & AutoTable -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        rosewood: '#6B333B',
+                        burgundy: '#5A1827',
+                        gold: '#C5A059',
+                        sage: '#4A5B4E'
+                    },
+                    fontFamily: {
+                        sans: ['"Montserrat"', 'sans-serif'],
+                        serif: ['"Playfair Display"', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800 antialiased min-h-screen">
+
+    <div id="toast-container" class="fixed top-5 right-5 z-[9999] flex flex-col gap-3 pointer-events-none"></div>
+
+    <!-- Logout Modal -->
+    <div id="logout-modal" class="fixed inset-0 z-[100] bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-7 max-w-sm w-full text-center border border-gray-100">
+            <div class="w-14 h-14 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">⚠️</div>
+            <h3 class="font-serif text-xl font-bold text-gray-900 mb-2">Confirm Logout</h3>
+            <p class="text-xs text-gray-500 mb-6 leading-relaxed">Are you sure you want to end your admin session?</p>
+            <div class="flex gap-3">
+                <button onclick="closeLogoutModal()" class="flex-1 py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-xl">Cancel</button>
+                <button onclick="confirmLogout()" class="flex-1 py-3 px-4 bg-rosewood text-white text-xs font-semibold rounded-xl shadow-md">Log Out</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete RSVP Modal -->
+    <div id="delete-rsvp-modal" class="fixed inset-0 z-[100] bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-7 max-w-sm w-full text-center border border-gray-100">
+            <div class="w-14 h-14 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">🗑️</div>
+            <h3 class="font-serif text-xl font-bold text-gray-900 mb-2">Delete RSVP?</h3>
+            <p class="text-xs text-gray-500 mb-6 leading-relaxed">Remove this guest's response permanently?</p>
+            <div class="flex gap-3">
+                <button onclick="closeDeleteModal()" class="flex-1 py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-xl">Cancel</button>
+                <button onclick="confirmDeleteRSVP()" id="confirm-delete-btn" class="flex-1 py-3 px-4 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-xl shadow-md">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Master Login Modal -->
+    <div id="login-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border border-gold/30">
+            <div class="w-16 h-16 bg-rosewood/10 text-rosewood rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-serif">❖</div>
+            <h2 class="font-serif text-2xl text-rosewood font-bold mb-1">Admin Portal</h2>
+            <p class="text-xs text-gray-500 mb-6">Wedding Content Management & RSVP Desk</p>
+            
+            <form onsubmit="handleLogin(event)" class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Admin Email</label>
+                    <input type="email" id="adminEmail" value="krmohammedaffan@gmail.com" required class="w-full px-4 py-3 rounded-lg border border-gray-300 text-sm focus:border-rosewood">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Password</label>
+                    <input type="password" id="adminPassword" placeholder="••••••••" required class="w-full px-4 py-3 rounded-lg border border-gray-300 text-sm focus:border-rosewood">
+                </div>
+                
+                <p id="login-error" class="text-xs text-red-600 hidden font-medium text-center">Invalid email or password.</p>
+
+                <button type="submit" id="login-btn" class="w-full py-3.5 bg-rosewood text-white font-semibold rounded-lg shadow-md uppercase tracking-wider text-xs">
+                    Access Dashboard
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="admin-panel" class="hidden min-h-screen pb-20">
+        <header class="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
+            <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl text-rosewood font-serif">❖</span>
+                    <div>
+                        <h1 class="font-serif font-bold text-lg text-gray-900">Wedding Invitation Controls pannel </h1>
+                        <p class="text-xs text-green-600 font-medium">● Active </p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-2.5">
+                    <div class="flex items-center gap-1 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-lg text-xs">
+                        <span class="text-gray-500">Live on Site:</span>
+                        <span id="header-active-badge" class="font-bold text-rosewood">Template 1 (Wax Seal)</span>
+                    </div>
+                    <button onclick="switchTab('whatsapp')" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 shadow-sm">
+                        <span>📲 WhatsApp Invite</span>
+                    </button>
+                    <a href="index.html" target="_blank" class="px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5">
+                        <span>Live Site</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                    </a>
+                    <button onclick="openLogoutModal()" class="px-3 py-2 bg-rosewood/10 hover:bg-rosewood/20 text-rosewood text-xs font-semibold rounded-lg">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="max-w-6xl mx-auto px-4 py-8">
+            
+            <div class="flex flex-wrap border-b border-gray-200 mb-8">
+                <button onclick="switchTab('t1')" id="tab-btn-t1" class="py-3 px-5 font-semibold text-sm border-b-2 border-rosewood text-rosewood transition-colors">
+                    🌸 Edit Template 1 (Wax Seal)
+                </button>
+                <button onclick="switchTab('t2')" id="tab-btn-t2" class="py-3 px-5 font-semibold text-sm border-b-2 border-transparent text-gray-500 hover:text-gray-700 transition-colors">
+                    🕌 Edit Template 2 (Scratch Card)
+                </button>
+                <button onclick="switchTab('whatsapp')" id="tab-btn-whatsapp" class="py-3 px-5 font-semibold text-sm border-b-2 border-transparent text-gray-500 hover:text-gray-700 transition-colors">
+                    📲 WhatsApp Message & Link Generator
+                </button>
+                <button onclick="switchTab('rsvp')" id="tab-btn-rsvp" class="py-3 px-5 font-semibold text-sm border-b-2 border-transparent text-gray-500 hover:text-gray-700 transition-colors">
+                    💌 Live response (<span id="rsvp-count">0</span>)
+                </button>
+            </div>
+
+            <!-- ========================================================= -->
+            <!-- 🌸 SEQUENCE 1: EDIT TEMPLATE 1 (WAX SEAL & BOTANICAL) -->
+            <!-- ========================================================= -->
+            <div id="tab-t1">
+                <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-amber-50/70 p-5 rounded-2xl border border-amber-200">
+                    <div>
+                        <h3 class="font-serif text-lg font-bold text-gray-900">Template 1: Royal Wax Seal & Light Botanical</h3>
+                        <p class="text-xs text-gray-500">Envelope 3D opening, wax seal button, petal shower, single-line names, and stationery cards.</p>
+                    </div>
+                    <div class="flex gap-2.5">
+                        <button onclick="setActiveTemplateLive('template1')" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded-xl shadow-sm">
+                            ⭐ Set Active on Live Site
+                        </button>
+                        <a href="template1.html" target="_blank" class="px-3.5 py-2 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 text-xs font-semibold rounded-xl">
+                            👁️ Preview T1
+                        </a>
+                    </div>
+                </div>
+
+                <form onsubmit="saveTemplate1(event)" class="space-y-8">
+                    <!-- Names -->
+                    <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-200">
+                        <h3 class="font-serif text-lg font-bold text-rosewood mb-4 pb-2 border-b border-gray-100">
+                            👑 Couple & Names (Exact Letter Case Control)
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Groom Name</label>
+                                <input type="text" id="t1_groom_name" placeholder="KR Mohammed Affan" class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-rosewood" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Bride Name</label>
+                                <input type="text" id="t1_bride_name" placeholder="P Afreen Roohi" class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-rosewood" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Wax Seal Monogram</label>
+                                <input type="text" id="t1_seal_monogram" placeholder="A&A" class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Footer Names</label>
+                                <input type="text" id="t1_footer_names" placeholder="Affan & Roohi" class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Family Line Text</label>
+                                <input type="text" id="t1_together_text" class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Audio File Name (Root directory)</label>
+                                <input type="text" id="t1_audio_file" placeholder="affanroohi.mp3" class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Date & Countdown -->
+                    <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-200">
+                        <h3 class="font-serif text-lg font-bold text-rosewood mb-4 pb-2 border-b border-gray-100">
+                            ⏳ Date & Countdown
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Display Date</label>
+                                <input type="text" id="t1_display_date" placeholder="NOVEMBER 15, 2026" class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Display Day</label>
+                                <input type="text" id="t1_display_day" placeholder="Sunday" class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Countdown ISO Target</label>
+                                <input type="text" id="t1_countdown_date" placeholder="Nov 15, 2026 11:00:00" class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DYNAMIC EVENT CARDS (T1) -->
+                    <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-200">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 pb-2 border-b border-gray-100">
+                            <h3 class="font-serif text-lg font-bold text-rosewood flex items-center gap-2">📅 Wedding Event Cards Manager (T1)</h3>
+                            <button type="button" onclick="addNewT1EventCard()" class="px-4 py-2 bg-rosewood hover:bg-[#52252B] text-white text-xs font-bold rounded-xl shadow-sm transition-all">+ Add New Event</button>
+                        </div>
+                        <div id="t1-events-container" class="space-y-4"></div>
+                    </div>
+
+                    <!-- Venue -->
+                    <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-200">
+                        <h3 class="font-serif text-lg font-bold text-rosewood mb-4 pb-2 border-b border-gray-100">📍 Venue Location & Maps</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Hall / Banquet Name</label>
+                                <input type="text" id="t1_venue_name" placeholder="Grand Palace Banquet Hall" class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Google Maps URL</label>
+                                <input type="url" id="t1_venue_map_url" placeholder="https://maps.google.com/..." class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm" required>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Full Address</label>
+                                <textarea id="t1_venue_address" rows="2" class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm" required></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sticky bottom-6 bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-gray-200 flex justify-between items-center">
+                        <span id="save-status-t1" class="text-xs font-semibold text-green-700 hidden">✅ Template 1 Updated Live!</span>
+                        <button type="submit" id="save-t1-btn" class="ml-auto px-8 py-3.5 bg-rosewood text-white font-bold text-xs uppercase tracking-widest rounded-xl shadow-md">Save Template 1 </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- ========================================================= -->
+            <!-- 🕌 SEQUENCE 2: EDIT TEMPLATE 2 -->
+            <!-- ========================================================= -->
+            <div id="tab-t2" class="hidden">
+                <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-rose-50/70 p-5 rounded-2xl border border-rose-200">
+                    <div>
+                        <h3 class="font-serif text-lg font-bold text-gray-900">Template 2: Sacred Union & Scratch Card</h3>
+                        <p class="text-xs text-gray-500">Islamic crescent motif, Quran verse card, interactive scratch card, venue details, day timeline, and glowing RSVP.</p>
+                    </div>
+                    <div class="flex gap-2.5">
+                        <button onclick="setActiveTemplateLive('template2')" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded-xl shadow-sm">⭐ Set Active on Live Site</button>
+                        <a href="template2.html" target="_blank" class="px-3.5 py-2 bg-white border border-gray-300 text-gray-700 text-xs font-semibold rounded-xl">👁️ Preview T2</a>
+                    </div>
+                </div>
+
+                <form onsubmit="saveTemplate2(event)" class="space-y-8">
+                    <!-- Names -->
+                    <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-200">
+                        <h3 class="font-serif text-lg font-bold text-burgundy mb-4 pb-2 border-b border-gray-100">👑 Couple Names & Audio (Exact Casing)</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- SWAPPED ORDER: GROOM FIRST, THEN BRIDE -->
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Bride's Full Name</label>
+                                <input type="text" id="t2_groom_name" placeholder="KR Mohammed Affan" class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-burgundy" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Groom's Full Name</label>
+                                <input type="text" id="t2_bride_name" placeholder="P Afreen Roohi" class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm focus:border-burgundy" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">bride Short Name (Opening Card)</label>
+                                <input type="text" id="t2_groom_short" placeholder="Affan" class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Groom Short Name (Opening Card)</label>
+                                <input type="text" id="t2_bride_short" placeholder="Roohi" class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Footer Names</label>
+                                <input type="text" id="t2_footer_names" placeholder="Affan & Roohi" class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Background Audio File Name</label>
+                                <input type="text" id="t2_audio_file" placeholder="affanroohi143.mp3" class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quran Verse -->
+                    <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-200 space-y-4">
+                        <h3 class="font-serif text-lg font-bold text-burgundy mb-2 pb-2 border-b border-gray-100">📖 Quran Verse & Blessings</h3>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Arabic Quran Verse</label>
+                            <textarea id="t2_quran_arabic" rows="2" class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm text-right font-arabic"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">English Translation</label>
+                            <textarea id="t2_quran_english" rows="2" class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm italic"></textarea>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Surah Reference</label>
+                                <input type="text" id="t2_quran_surah" placeholder="Surah Ar-Rum [30:21]" class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Opening Quote</label>
+                                <input type="text" id="t2_opening_quote" placeholder='"And We created you in pairs." (78:8)' class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Footer Quote</label>
+                                <input type="text" id="t2_footer_quote" placeholder='"Thank you..."' class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Date -->
+                    <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-200">
+                        <h3 class="font-serif text-lg font-bold text-burgundy mb-4 pb-2 border-b border-gray-100">⏳ Scratch Date & Countdown</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Display Date (e.g. 15 NOV 2026)</label>
+                                <input type="text" id="t2_display_date" placeholder="15 NOV 2026" class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Display Day</label>
+                                <input type="text" id="t2_display_day" placeholder="SUNDAY" class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Countdown ISO Target</label>
+                                <input type="text" id="t2_countdown_date" placeholder="Nov 15, 2026 10:30:00" class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DYNAMIC EVENT CARDS (T2) -->
+                    <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-200">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 pb-2 border-b border-gray-100">
+                            <h3 class="font-serif text-lg font-bold text-burgundy flex items-center gap-2">📅 Wedding Event Cards Manager (T2)</h3>
+                            <button type="button" onclick="addNewT2EventCard()" class="px-4 py-2 bg-burgundy hover:bg-[#3B0F1A] text-white text-xs font-bold rounded-xl shadow-sm transition-all">+ Add New Event</button>
+                        </div>
+                        <div id="t2-events-container" class="space-y-4"></div>
+                    </div>
+
+                    <!-- DYNAMIC TIMELINE (T2) -->
+                    <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-200">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 pb-2 border-b border-gray-100">
+                            <h3 class="font-serif text-lg font-bold text-burgundy flex items-center gap-2">🕒 Day Timeline Itinerary</h3>
+                            <button type="button" onclick="addNewT2TimelineStep()" class="px-3.5 py-2 bg-gray-100 text-gray-700 text-xs font-bold rounded-xl transition-all">+ Add Timeline Step</button>
+                        </div>
+                        <div id="t2-timeline-container" class="space-y-3"></div>
+                    </div>
+
+                    <!-- Venue -->
+                    <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-200">
+                        <h3 class="font-serif text-lg font-bold text-burgundy mb-4 pb-2 border-b border-gray-100">📍 Main Venue & Maps</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Hall / Banquet Name</label>
+                                <input type="text" id="t2_venue_name" placeholder="Grand Palace Banquet Hall" class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Google Maps URL</label>
+                                <input type="url" id="t2_venue_map_url" placeholder="https://maps.google.com/..." class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm" required>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Full Address</label>
+                                <textarea id="t2_venue_address" rows="2" class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm" required></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sticky bottom-6 bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-gray-200 flex justify-between items-center">
+                        <span id="save-status-t2" class="text-xs font-semibold text-green-700 hidden">✅ Template 2 Updated Live!</span>
+                        <button type="submit" id="save-t2-btn" class="ml-auto px-8 py-3.5 bg-burgundy text-white font-bold text-xs uppercase tracking-widest rounded-xl shadow-md">Save Template 2</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- ========================================================= -->
+            <!-- 📲 TAB 3: WHATSAPP GENERATOR -->
+            <!-- ========================================================= -->
+            <div id="tab-whatsapp" class="hidden space-y-8">
+                <div class="bg-gradient-to-r from-emerald-50/80 via-white to-emerald-50/80 p-6 md:p-8 rounded-2xl shadow-sm border border-emerald-200">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 pb-2 border-b border-emerald-200/60">
+                        <div><h3 class="font-serif text-xl font-bold text-emerald-900">📲 WhatsApp Invitation Generator</h3></div>
+                        <div class="flex gap-2.5">
+                            <button onclick="copyGeneratedWhatsApp()" class="px-5 py-2.5 bg-emerald-600 text-white text-xs font-bold rounded-xl shadow-md">📋 Copy Invite</button>
+                            <button onclick="shareDirectlyWhatsApp()" class="px-4 py-2.5 bg-gray-100 text-gray-800 text-xs font-bold rounded-xl border border-gray-300">🚀 Open WhatsApp</button>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Select Template to Generate Link For:</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <label id="wa-btn-t1" class="flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer bg-amber-50/60 border-rosewood transition-all">
+                                <input type="radio" name="wa_selected_template" value="template1" checked onchange="onWhatsAppTemplateToggle('template1')" class="accent-rosewood w-4 h-4">
+                                <div><span class="font-serif font-bold text-sm text-rosewood block">Template 1 (Wax Seal)</span></div>
+                            </label>
+                            <label id="wa-btn-t2" class="flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer border-gray-200 transition-all">
+                                <input type="radio" name="wa_selected_template" value="template2" onchange="onWhatsAppTemplateToggle('template2')" class="accent-burgundy w-4 h-4">
+                                <div><span class="font-serif font-bold text-sm text-burgundy block">Template 2 (Scratch Card)</span></div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-6">
+                        <div class="space-y-5">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Direct Invitation URL</label>
+                                <input type="url" id="wa_custom_url" oninput="updateWhatsAppPreview()" class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">WhatsApp Message</label>
+                                <textarea id="wa_message_text" oninput="updateWhatsAppPreview()" rows="8" class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm font-mono leading-relaxed"></textarea>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-gray-600 uppercase mb-2">Live Chat Preview</p>
+                            <div class="bg-[#EFEAE2] p-4 rounded-2xl shadow-inner border border-gray-300 max-w-sm mx-auto">
+                                <div class="bg-[#E7FFDB] p-3.5 rounded-2xl rounded-tr-none shadow-sm border border-emerald-100 text-xs text-gray-800">
+                                    <div id="wa-preview-body" class="whitespace-pre-line leading-relaxed font-sans text-gray-800"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================================= -->
+            <!-- 💌 TAB 4: LIVE RSVPS & PDF EXPORT -->
+            <!-- ========================================================= -->
+            <div id="tab-rsvp" class="hidden">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="p-6 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <h3 class="font-serif text-lg font-bold text-gray-900">Guest RSVP Responses</h3>
+                        </div>
+                        <div class="flex flex-wrap gap-2.5">
+                            <button onclick="loadRSVPTable(true)" class="px-3.5 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg">🔄 Refresh</button>
+                            <button onclick="exportPDF()" class="px-4 py-2 bg-rosewood text-white text-xs font-semibold rounded-lg shadow-md">📄 Export Luxury PDF</button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-gray-600">
+                            <thead class="bg-gray-50 text-xs font-bold text-gray-500 uppercase border-b border-gray-200">
+                                <tr>
+                                    <th class="px-6 py-4">Guest Name</th>
+                                    <th class="px-6 py-4">Attendance</th>
+                                    <th class="px-6 py-4">Prayer / Wish</th>
+                                    <th class="px-6 py-4">Date Submitted</th>
+                                    <th class="px-6 py-4 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rsvp-table-body" class="divide-y divide-gray-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Script -->
+    <script>
+        const SUPABASE_URL = "https://nvmlebskojjrgumuvwci.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52bWxlYnNrb2pqcmd1bXV2d2NpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxMjExNzMsImV4cCI6MjEwMjY5NzE3M30.1VfcgQqMM0YnEZZsFFKy3ICvdh6_i-VSZtIfusNMAHM";
+
+        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const VALID_EMAIL = "krmohammedaffan@gmail.com";
+        const VALID_PASS = "Affan@143";
+
+        let currentActiveTemplate = 'template1';
+        let waSelectedTemplate = 'template1';
+        let pendingDeleteId = null;
+        
+        let t1EventsList = [];
+        let t2EventsList = [];
+        let t2TimelineList = [];
+
+        // 0-Latency Local Sync Channel
+        const localBc = new BroadcastChannel('wedding_live_sync');
+        // WebSockets Sync Channel
+        const liveChannel = db.channel('wedding-live-sync', { config: { broadcast: { self: true } } });
+        liveChannel.subscribe();
+
+        function getTemplateGuestUrl(templateKey) {
+            const fileName = templateKey === 'template2' ? 'template2.html' : 'template1.html';
+            let path = window.location.pathname.replace(/\/admin\.html$/i, '');
+            if (!path.endsWith('/')) path += '/';
+            return `${window.location.origin}${path}${fileName}`;
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const icons = { success: '✅', error: '❌', info: 'ℹ️', loading: '⏳' };
+            const borderColors = { success: 'border-green-500 text-green-800', error: 'border-red-500 text-red-800', info: 'border-blue-500 text-blue-800', loading: 'border-gold text-gray-800' };
+            toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3.5 bg-white rounded-xl shadow-2xl border-l-4 ${borderColors[type]} text-xs font-semibold max-w-sm transition-all duration-300 transform translate-x-10 opacity-0`;
+            toast.innerHTML = `<span class="text-base">${icons[type] || '🔔'}</span><span class="leading-tight text-gray-700">${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.remove('translate-x-10', 'opacity-0'), 50);
+            setTimeout(() => { toast.classList.add('translate-x-10', 'opacity-0'); setTimeout(() => toast.remove(), 300); }, 3500);
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('adminEmail').value.trim().toLowerCase();
+            const password = document.getElementById('adminPassword').value.trim();
+            if (email === VALID_EMAIL && password === VALID_PASS) {
+                sessionStorage.setItem('admin_logged_in', 'true');
+                showToast("Welcome Affan! Signed in successfully.", "success");
+                showDashboard();
+            } else {
+                document.getElementById('login-error').classList.remove('hidden');
+                showToast("Login failed.", "error");
+            }
+        }
+
+        function openLogoutModal() { document.getElementById('logout-modal').classList.remove('hidden'); }
+        function closeLogoutModal() { document.getElementById('logout-modal').classList.add('hidden'); }
+        function confirmLogout() { sessionStorage.removeItem('admin_logged_in'); location.reload(); }
+
+        function switchTab(tab) {
+            document.getElementById('tab-t1').classList.add('hidden');
+            document.getElementById('tab-t2').classList.add('hidden');
+            document.getElementById('tab-whatsapp').classList.add('hidden');
+            document.getElementById('tab-rsvp').classList.add('hidden');
+
+            document.getElementById('tab-btn-t1').className = "py-3 px-5 font-semibold text-sm border-b-2 border-transparent text-gray-500 hover:text-gray-700 transition-colors";
+            document.getElementById('tab-btn-t2').className = "py-3 px-5 font-semibold text-sm border-b-2 border-transparent text-gray-500 hover:text-gray-700 transition-colors";
+            document.getElementById('tab-btn-whatsapp').className = "py-3 px-5 font-semibold text-sm border-b-2 border-transparent text-gray-500 hover:text-gray-700 transition-colors";
+            document.getElementById('tab-btn-rsvp').className = "py-3 px-5 font-semibold text-sm border-b-2 border-transparent text-gray-500 hover:text-gray-700 transition-colors";
+
+            if (tab === 't1') {
+                document.getElementById('tab-t1').classList.remove('hidden');
+                document.getElementById('tab-btn-t1').className = "py-3 px-5 font-semibold text-sm border-b-2 border-rosewood text-rosewood";
+            } else if (tab === 't2') {
+                document.getElementById('tab-t2').classList.remove('hidden');
+                document.getElementById('tab-btn-t2').className = "py-3 px-5 font-semibold text-sm border-b-2 border-burgundy text-burgundy";
+            } else if (tab === 'whatsapp') {
+                document.getElementById('tab-whatsapp').classList.remove('hidden');
+                document.getElementById('tab-btn-whatsapp').className = "py-3 px-5 font-semibold text-sm border-b-2 border-emerald-600 text-emerald-800";
+                updateWhatsAppDefaults();
+            } else {
+                document.getElementById('tab-rsvp').classList.remove('hidden');
+                document.getElementById('tab-btn-rsvp').className = "py-3 px-5 font-semibold text-sm border-b-2 border-rosewood text-rosewood";
+                loadRSVPTable();
+            }
+        }
+
+        async function setActiveTemplateLive(tpl) {
+            const { error } = await db.from('app_settings').upsert({ id: 1, active_template: tpl });
+            if (!error) {
+                currentActiveTemplate = tpl;
+                updateActiveBadge();
+                
+                localBc.postMessage({ type: 'template_switch', active_template: tpl });
+                liveChannel.send({ type: 'broadcast', event: 'template_switch', payload: { active_template: tpl } });
+
+                showToast(`Switched active live template to ${tpl === 'template1' ? 'Template 1' : 'Template 2'}! 🚀`, "success");
+            } else {
+                showToast("Error updating live template: " + error.message, "error");
+            }
+        }
+
+        function updateActiveBadge() {
+            const b = document.getElementById('header-active-badge');
+            b.innerText = currentActiveTemplate === 'template1' ? 'Template 1 (Wax Seal)' : 'Template 2 (Scratch Card)';
+            b.className = currentActiveTemplate === 'template1' ? 'font-bold text-rosewood' : 'font-bold text-burgundy';
+        }
+
+        // ================= DYNAMIC EVENT CARDS FOR T1 =================
+        function renderT1EventsUI() {
+            const container = document.getElementById('t1-events-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            t1EventsList.forEach((ev, idx) => {
+                const card = document.createElement('div');
+                card.className = "p-4 bg-gray-50 rounded-xl border border-gray-200 relative space-y-3";
+                card.innerHTML = `
+                    <div class="flex justify-between items-center pb-2 border-b border-gray-200">
+                        <span class="font-bold text-xs text-rosewood uppercase tracking-wider">Event Card #${idx + 1}</span>
+                        <button type="button" onclick="removeT1EventCard(${idx})" class="text-xs text-red-600 hover:text-red-800 font-semibold">✕ Remove</button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div><label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Badge Tag</label><input type="text" value="${ev.tag || ''}" oninput="t1EventsList[${idx}].tag = this.value" class="w-full px-3 py-2 rounded border border-gray-300 text-sm"></div>
+                        <div><label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Event Title</label><input type="text" value="${ev.title || ''}" oninput="t1EventsList[${idx}].title = this.value" class="w-full px-3 py-2 rounded border border-gray-300 text-sm font-semibold"></div>
+                        <div><label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Date & Time</label><input type="text" value="${ev.time || ''}" oninput="t1EventsList[${idx}].time = this.value" class="w-full px-3 py-2 rounded border border-gray-300 text-sm"></div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div><label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Venue Name</label><input type="text" value="${ev.venue || ''}" oninput="t1EventsList[${idx}].venue = this.value" class="w-full px-3 py-2 rounded border border-gray-300 text-sm"></div>
+                        <div><label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Address</label><input type="text" value="${ev.address || ''}" oninput="t1EventsList[${idx}].address = this.value" class="w-full px-3 py-2 rounded border border-gray-300 text-sm"></div>
+                        <div><label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Google Maps URL</label><input type="url" value="${ev.map_url || ''}" oninput="t1EventsList[${idx}].map_url = this.value" class="w-full px-3 py-2 rounded border border-gray-300 text-sm"></div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+        function addNewT1EventCard() {
+            t1EventsList.push({ tag: "Ceremony", title: "New Wedding Function", time: "Sunday, 15 Nov 2026 • 11:00 AM", venue: "", address: "", map_url: "" });
+            renderT1EventsUI();
+            showToast("New Event Card added to Template 1!", "info");
+        }
+        function removeT1EventCard(idx) { t1EventsList.splice(idx, 1); renderT1EventsUI(); }
+
+        // ================= DYNAMIC EVENT CARDS FOR T2 =================
+        function renderT2EventsUI() {
+            const container = document.getElementById('t2-events-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            t2EventsList.forEach((ev, idx) => {
+                const card = document.createElement('div');
+                card.className = "p-4 bg-gray-50 rounded-xl border border-gray-200 relative space-y-3";
+                card.innerHTML = `
+                    <div class="flex justify-between items-center pb-2 border-b border-gray-200">
+                        <span class="font-bold text-xs text-burgundy uppercase tracking-wider">Event Card #${idx + 1}</span>
+                        <button type="button" onclick="removeT2EventCard(${idx})" class="text-xs text-red-600 hover:text-red-800 font-semibold">✕ Remove</button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div><label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Badge Tag</label><input type="text" value="${ev.tag || ''}" oninput="t2EventsList[${idx}].tag = this.value" class="w-full px-3 py-2 rounded border border-gray-300 text-sm"></div>
+                        <div><label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Event Title</label><input type="text" value="${ev.title || ''}" oninput="t2EventsList[${idx}].title = this.value" class="w-full px-3 py-2 rounded border border-gray-300 text-sm font-semibold"></div>
+                        <div><label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Date & Time</label><input type="text" value="${ev.time || ''}" oninput="t2EventsList[${idx}].time = this.value" class="w-full px-3 py-2 rounded border border-gray-300 text-sm"></div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div><label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Venue Name</label><input type="text" value="${ev.venue || ''}" oninput="t2EventsList[${idx}].venue = this.value" class="w-full px-3 py-2 rounded border border-gray-300 text-sm"></div>
+                        <div><label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Address</label><input type="text" value="${ev.address || ''}" oninput="t2EventsList[${idx}].address = this.value" class="w-full px-3 py-2 rounded border border-gray-300 text-sm"></div>
+                        <div><label class="block text-[11px] font-bold text-gray-600 uppercase mb-1">Google Maps URL</label><input type="url" value="${ev.map_url || ''}" oninput="t2EventsList[${idx}].map_url = this.value" class="w-full px-3 py-2 rounded border border-gray-300 text-sm"></div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+        function addNewT2EventCard() {
+            t2EventsList.push({ tag: "Ceremony", title: "New Wedding Function", time: "Sunday, 15 November 2026 • 10:30 AM", venue: "", address: "", map_url: "https://maps.google.com" });
+            renderT2EventsUI();
+            showToast("New Event Card added to Template 2!", "info");
+        }
+        function removeT2EventCard(idx) { t2EventsList.splice(idx, 1); renderT2EventsUI(); }
+
+        // ================= DYNAMIC TIMELINE STEPS FOR T2 =================
+        function renderT2TimelineUI() {
+            const container = document.getElementById('t2-timeline-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            t2TimelineList.forEach((tm, idx) => {
+                const row = document.createElement('div');
+                row.className = "flex items-center gap-3";
+                row.innerHTML = `
+                    <input type="text" value="${tm.time || ''}" oninput="t2TimelineList[${idx}].time = this.value" placeholder="10:00 AM" class="w-1/3 px-3 py-2 rounded border border-gray-300 text-sm">
+                    <input type="text" value="${tm.title || ''}" oninput="t2TimelineList[${idx}].title = this.value" placeholder="Guest Welcome" class="w-2/3 px-3 py-2 rounded border border-gray-300 text-sm font-medium">
+                    <button type="button" onclick="removeT2TimelineStep(${idx})" class="text-red-500 hover:text-red-700 p-2 font-bold">✕</button>
+                `;
+                container.appendChild(row);
+            });
+        }
+        function addNewT2TimelineStep() {
+            t2TimelineList.push({ time: "01:00 PM", title: "New Itinerary Step" });
+            renderT2TimelineUI();
+            showToast("Timeline step added!", "info");
+        }
+        function removeT2TimelineStep(idx) { t2TimelineList.splice(idx, 1); renderT2TimelineUI(); }
+
+        // ================= WHATSAPP MESSAGE =================
+        function onWhatsAppTemplateToggle(tpl) {
+            waSelectedTemplate = tpl;
+            document.getElementById('wa-btn-t1').className = `flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${tpl === 'template1' ? 'border-rosewood bg-amber-50/60 shadow-sm' : 'border-gray-200 bg-white'}`;
+            document.getElementById('wa-btn-t2').className = `flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${tpl === 'template2' ? 'border-burgundy bg-rose-50/60 shadow-sm' : 'border-gray-200 bg-white'}`;
+            
+            document.getElementById('wa_custom_url').value = getTemplateGuestUrl(tpl);
+            updateWhatsAppDefaults();
+        }
+
+        function updateWhatsAppDefaults() {
+            const isT1 = waSelectedTemplate === 'template1';
+            const groom = document.getElementById(isT1 ? 't1_groom_name' : 't2_groom_name')?.value.trim() || 'KR Mohammed Affan';
+            const bride = document.getElementById(isT1 ? 't1_bride_name' : 't2_bride_name')?.value.trim() || 'P Afreen Roohi';
+            const date = document.getElementById(isT1 ? 't1_display_date' : 't2_display_date')?.value.trim() || 'NOVEMBER 15, 2026';
+            const day = document.getElementById(isT1 ? 't1_display_day' : 't2_display_day')?.value.trim() || 'Sunday';
+
+            const activeLink = document.getElementById('wa_custom_url').value.trim() || getTemplateGuestUrl(waSelectedTemplate);
+            const defaultMsg = `🌸 *Wedding Invitation* 🌸\n\nTogether with our families, we request the honor of your presence and heartfelt prayers to celebrate the wedding of\n\n✨ *${groom}* & *${bride}* ✨\n\n📅 *Date:* ${date} (${day})\n📍 *Venue Details:* ${activeLink}\n\nKindly open the link to view our invitation card! ❤️`;
+
+            document.getElementById('wa_message_text').value = defaultMsg;
+            updateWhatsAppPreview();
+        }
+
+        function updateWhatsAppPreview() {
+            let msg = document.getElementById('wa_message_text').value;
+            let formatted = msg.replace(/\*(.*?)\*/g, '<b class="font-bold text-gray-900">$1</b>').replace(/_(.*?)_/g, '<i class="italic text-gray-800">$1</i>');
+            document.getElementById('wa-preview-body').innerHTML = formatted;
+        }
+
+        function copyGeneratedWhatsApp() {
+            let text = document.getElementById('wa_message_text').value.replace(/\/admin\.html/gi, '/index.html');
+            navigator.clipboard.writeText(text).then(() => showToast(`Invitation link copied! 📲`, "success"));
+        }
+
+        // ================= DATABASE SYNC =================
+        async function loadAllFromDB() {
+            const { data: appData } = await db.from('app_settings').select('*').eq('id', 1).single();
+            if (appData) { currentActiveTemplate = appData.active_template || 'template1'; updateActiveBadge(); }
+
+            // Load Template 1
+            const { data: t1Data } = await db.from('t1_config').select('*').eq('id', 1).single();
+            if (t1Data) {
+                for (let key in t1Data) {
+                    if (document.getElementById('t1_' + key)) document.getElementById('t1_' + key).value = t1Data[key];
+                }
+                t1EventsList = Array.isArray(t1Data.events) && t1Data.events.length > 0 ? t1Data.events : [
+                    { tag: "Solemnization", title: "The Nikah Ceremony", time: "Sunday, Nov 15, 2026 • 11:00 AM", venue:"Grand Palace Banquet Hall", address:"123 Ave", map_url:"https://maps.google.com" }
+                ];
+                renderT1EventsUI();
+            }
+
+            // Load Template 2
+            const { data: t2Data } = await db.from('t2_config').select('*').eq('id', 1).single();
+            if (t2Data) {
+                for (let key in t2Data) {
+                    if (document.getElementById('t2_' + key)) document.getElementById('t2_' + key).value = t2Data[key];
+                }
+                t2EventsList = Array.isArray(t2Data.events) && t2Data.events.length > 0 ? t2Data.events : [
+                    { tag: "Sacred Ceremony", title: "The Nikah", time: "Sunday, 15 November 2026 • 10:30 AM", venue: "The Grand Rose Ballroom", address: "450 Sultan Blvd", map_url: "https://maps.google.com" }
+                ];
+                t2TimelineList = Array.isArray(t2Data.timeline) && t2Data.timeline.length > 0 ? t2Data.timeline : [
+                    { time: "10:00 AM", title: "Guest Welcome & Refreshments" },
+                    { time: "10:30 AM", title: "Nikah Solemnization" }
+                ];
+                renderT2EventsUI();
+                renderT2TimelineUI();
+            }
+            onWhatsAppTemplateToggle(currentActiveTemplate);
+        }
+
+        async function saveTemplate1(e) {
+            e.preventDefault();
+            const btn = document.getElementById('save-t1-btn');
+            btn.innerHTML = "Saving T1..."; btn.disabled = true;
+
+            const fields = [
+                'groom_name', 'bride_name', 'seal_monogram', 'footer_names', 'together_text',
+                'display_date', 'display_day', 'countdown_date', 'audio_file',
+                'venue_name', 'venue_address', 'venue_map_url'
+            ];
+
+            const updateData = { id: 1, events: t1EventsList, updated_at: new Date().toISOString() };
+            fields.forEach(f => { if (document.getElementById('t1_' + f)) updateData[f] = document.getElementById('t1_' + f).value; });
+
+            // 0ms Sync
+            localBc.postMessage({ type: 't1_sync', data: updateData });
+            liveChannel.send({ type: 'broadcast', event: 't1_sync', payload: updateData });
+
+            const { error } = await db.from('t1_config').upsert(updateData);
+            btn.innerHTML = "Save Template 1 "; btn.disabled = false;
+
+            if (!error) showToast("Template 1 updated live in real-time! 🌸", "success");
+            else showToast("Error saving T1: " + error.message, "error");
+        }
+
+        async function saveTemplate2(e) {
+            e.preventDefault();
+            const btn = document.getElementById('save-t2-btn');
+            btn.innerHTML = "Saving T2..."; btn.disabled = true;
+
+            const fields = [
+                'groom_name', 'bride_name', 'groom_short', 'bride_short', 'footer_names',
+                'opening_quote', 'footer_quote', 'blessing_title', 'blessing_subtitle',
+                'quran_arabic', 'quran_english', 'quran_surah',
+                'display_date', 'display_day', 'countdown_date', 'audio_file',
+                'venue_name', 'venue_address', 'venue_map_url'
+            ];
+
+            const updateData = { id: 1, events: t2EventsList, timeline: t2TimelineList, updated_at: new Date().toISOString() };
+            fields.forEach(f => { if (document.getElementById('t2_' + f)) updateData[f] = document.getElementById('t2_' + f).value; });
+
+            // 0ms Sync
+            localBc.postMessage({ type: 't2_sync', data: updateData });
+            liveChannel.send({ type: 'broadcast', event: 't2_sync', payload: updateData });
+
+            const { error } = await db.from('t2_config').upsert(updateData);
+            btn.innerHTML = "Save Template 2 "; btn.disabled = false;
+
+            if (!error) showToast("Template 2 updated live in real-time! 🕌", "success");
+            else showToast("Error saving T2: " + error.message, "error");
+        }
+
+        // RSVPs
+        let cachedRSVPs = [];
+        async function loadRSVPTable(manual = false) {
+            const { data } = await db.from('rsvp').select('*').order('created_at', { ascending: false });
+            const tbody = document.getElementById('rsvp-table-body');
+            tbody.innerHTML = '';
+            if (data && data.length > 0) {
+                cachedRSVPs = data;
+                document.getElementById('rsvp-count').innerText = data.length;
+                data.forEach(item => {
+                    const formattedDate = new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="px-6 py-4 font-semibold text-gray-900">${item.guest_name}</td>
+                        <td class="px-6 py-4">
+                            <span class="px-2.5 py-1 text-xs font-bold rounded-full ${item.attendance.includes('Accept') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
+                                ${item.attendance}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-xs italic text-gray-600 max-w-xs truncate">${item.message || '-'}</td>
+                        <td class="px-6 py-4 text-xs text-gray-400">${formattedDate}</td>
+                        <td class="px-6 py-4 text-right">
+                            <button onclick="openDeleteModal('${item.id}')" class="text-red-500 hover:text-red-700 text-xs font-semibold">Delete</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                if (manual) showToast("RSVP list updated.", "info");
+            } else {
+                document.getElementById('rsvp-count').innerText = "0";
+                tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-gray-400">No RSVPs yet.</td></tr>`;
+            }
+        }
+
+        function openDeleteModal(id) { pendingDeleteId = id; document.getElementById('delete-rsvp-modal').classList.remove('hidden'); }
+        function closeDeleteModal() { pendingDeleteId = null; document.getElementById('delete-rsvp-modal').classList.add('hidden'); }
+        async function confirmDeleteRSVP() {
+            if (!pendingDeleteId) return;
+            await db.from('rsvp').delete().eq('id', pendingDeleteId);
+            closeDeleteModal(); showToast("RSVP removed.", "info"); loadRSVPTable();
+        }
+
+        db.channel('admin_realtime_channel').on('postgres_changes', { event: '*', schema: 'public', table: 'rsvp' }, () => loadRSVPTable(false)).subscribe();
+
+        if (sessionStorage.getItem('admin_logged_in') === 'true') showDashboard();
+        function showDashboard() {
+            document.getElementById('login-modal').classList.add('hidden');
+            document.getElementById('admin-panel').classList.remove('hidden');
+            loadAllFromDB(); loadRSVPTable();
+        }
+
+        function exportPDF() {
+            if (cachedRSVPs.length === 0) return showToast("No RSVPs available to export.", "error");
+            showToast("Generating luxury PDF report...", "loading");
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
+            const total = cachedRSVPs.length;
+            const accepted = cachedRSVPs.filter(r => r.attendance.includes('Accept')).length;
+            const declined = total - accepted;
+
+            doc.setFillColor(107, 51, 59); doc.rect(0, 0, doc.internal.pageSize.width, 14, 'F');
+            doc.setFillColor(197, 160, 89); doc.rect(0, 14, doc.internal.pageSize.width, 4, 'F');
+
+            doc.setFont("helvetica", "bold"); doc.setFontSize(22); doc.setTextColor(107, 51, 59);
+            doc.text("Guests attendance Registry", doc.internal.pageSize.width / 2, 54, { align: "center" });
+
+            doc.setDrawColor(197, 160, 89); doc.setFillColor(250, 248, 245); doc.roundedRect(40, 75, doc.internal.pageSize.width - 80, 48, 6, 6, 'FD');
+
+            const boxWidth = (doc.internal.pageSize.width - 80) / 3;
+            doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(107, 51, 59);
+            doc.text(`Total RSVPs: ${total}`, 40 + boxWidth * 0.5, 103, { align: "center" });
+            doc.setTextColor(34, 139, 34); doc.text(`Attending: ${accepted}`, 40 + boxWidth * 1.5, 103, { align: "center" });
+            doc.setTextColor(178, 34, 34); doc.text(`Declined: ${declined}`, 40 + boxWidth * 2.5, 103, { align: "center" });
+
+            const tableRows = cachedRSVPs.map((r, index) => [
+                index + 1, r.guest_name, r.attendance, r.message || '—',
+                new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+            ]);
+
+            doc.autoTable({
+                startY: 140,
+                head: [['#', 'Guest Name', 'Attendance', 'Prayer / Wishes for Couple', 'Date Submitted']],
+                body: tableRows,
+                theme: 'grid',
+                headStyles: { fillColor: [107, 51, 59], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9, halign: 'center' }
+            });
+
+            doc.save("Wedding_RSVP_Report.pdf");
+        }
+    </script>
+</body>
+</html>
